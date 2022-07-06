@@ -71,10 +71,12 @@ jobs:
       - restore_cache:
           keys: [frontend-build]
       - run:
-          cd frontend
-          npm install
-          # npm install oauth-sign@^0.9.0
-          npm audit --audit-level=critical
+          name: Scan frontend dependencies 
+          command: |
+            cd frontend
+            npm install
+            # npm install oauth-sign@^0.9.0
+            npm audit --audit-level=critical
 
   scan-backend:
     docker:
@@ -84,10 +86,12 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - run:
-          cd backend
-          npm install
-          # npm install oauth-sign@^0.9.0
-          npm audit --audit-level=critical
+          name: Scan backend dependencies
+          command: |
+            cd backend
+            npm install
+            # npm install oauth-sign@^0.9.0
+            npm audit --audit-level=critical
 
 workflows:
   default:
