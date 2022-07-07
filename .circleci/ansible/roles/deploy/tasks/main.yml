@@ -1,0 +1,12 @@
+- name: "Extract backend files"
+  unarchive:
+    src: ~/project/artifact.tar.gz
+    dest: /home/ec2-user/
+
+- name: "Start server"
+  become: true
+  shell: |
+    cd /home/ec2-user/
+    npm install
+    pm2 stop default
+    pm2 start npm -- start
