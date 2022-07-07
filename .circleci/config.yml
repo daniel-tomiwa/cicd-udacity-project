@@ -185,7 +185,7 @@ jobs:
             # install the dependencies needed for your playbook
             apk add --update tar
             apk add --update gzip
-            pip install ansible
+            apk add --update ansible
             apk add aws-cli
       - run:
           name: Configure server
