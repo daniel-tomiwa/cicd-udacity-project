@@ -211,7 +211,7 @@ jobs:
             python3-pip \
             python3-setuptools \
             && pip3 install --upgrade pip
-            pip3 --no-cache-dir install --upgrade awscli
+           python3 -m pip --no-cache-dir install --upgrade awscli
       - run:
           name: Run migrations
           command: |
