@@ -183,8 +183,8 @@ jobs:
           name: Install dependencies
           command: |
             # install the dependencies needed for your playbook
-            apk add --update ansible
             apk add aws-cli
+            apk add --update ansible
       - run:
           name: Configure server
           command: |
