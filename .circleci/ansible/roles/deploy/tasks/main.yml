@@ -1,7 +1,8 @@
+---
 - name: "Extract backend files"
   unarchive:
     src: ~/project/artifact.tar.gz
-    dest: /home/ec2-user/
+    dest: "~/"
 
 - name: "Start server"
   become: true

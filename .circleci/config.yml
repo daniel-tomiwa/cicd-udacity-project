@@ -242,16 +242,17 @@ jobs:
 
   deploy-frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: python:3.7-alpine3.16
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install needed dependencies
           command: |
             apk add --update npm
             apk add --update nodejs
-            apk add --update tar
-            apk add --update python
+            apk add --no-cache aws-cli
             apk add --update ansible
       - run:
           name: Get backend url
@@ -278,7 +279,7 @@ jobs:
                     
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: python:3.7-alpine3.16
     steps:
       - checkout
       - add_ssh_keys:
@@ -306,6 +307,10 @@ jobs:
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/artifact.tar.gz
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations
