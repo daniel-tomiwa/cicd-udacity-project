@@ -25,13 +25,12 @@ commands:
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
             # export SUCCESS = curl --insecure  https://kvdb.io/KNQvSi9EVfkDM3gmGkDc2P/migration_${CIRCLE_WORKFLOW_ID:0:7}
-            SUCCESS=1
+            export SUCCESS=1
             if(( $SUCCESS==1 )); 
             then
-            #  cd ~/project/backend
-            #  npm install
-            #  Add revert code here. You can find this in the Getting Started section.
-              exit 1
+              cd ~/project/backend
+              npm install
+              npm run migrations: revert
             fi
 
 jobs:
