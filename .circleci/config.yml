@@ -245,7 +245,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install dependencies
+          name: Install needed dependencies
           command: |
             apk add --update npm
             apk add --update nodejs
