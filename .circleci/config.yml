@@ -233,11 +233,12 @@ jobs:
           command: |
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
-                # If you are using kvdb.io, generate the bucket ID "KNQvSi9EVfkDM3gmGkDc2P" in your local terminal first
-                curl https://kvdb.io/KNQvSi9EVfkDM3gmGkDc2P/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+                # If you are using kvdb.io, generate the bucket ID "J5SgCMKQrVJVrE1TX8zr5J" in your local terminal first
+                curl https://kvdb.io/J5SgCMKQrVJVrE1TX8zr5J/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations
 
   deploy-frontend:
     docker:
