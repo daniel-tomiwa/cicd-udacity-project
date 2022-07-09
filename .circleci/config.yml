@@ -199,6 +199,7 @@ jobs:
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ~/project/backend/.env
             echo TYPEORM_PORT=$TYPEORM_PORT >> ~/project/backend/.env
             echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ~/project/backend/.env
+            echo TYPEORM_HOST=$TYPEORM_HOST >> ~/project/backend/.env
             cat ~/project/backend/.env
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
