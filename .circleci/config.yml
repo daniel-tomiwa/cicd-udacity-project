@@ -248,7 +248,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Install needed dependencies
+          name: Install the needed dependencies
           command: |
             apk add --update npm
             apk add --update nodejs
