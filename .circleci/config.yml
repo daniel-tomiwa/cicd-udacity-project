@@ -1,5 +1,10 @@
 version: 2.1
 
+parameters:
+  workflow_id:
+    type: string
+    default: '${CIRCLE_WORKFLOW_ID}'
+
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
@@ -11,13 +16,17 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
+            aws s3 rm s3://udapeople-<<parameters.id>> --recursive
             aws cloudformation delete-stack --stack-name udapeople-frontend-<<parameters.id>>
             aws cloudformation delete-stack --stack-name udapeople-backend-<<parameters.id>>
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
-      # Add parameter here     
+      # Add parameter here
+      parameters:
+        workflow_id:
+          type: string
     steps:
       - run:
           name: Revert migrations
@@ -30,6 +39,7 @@ commands:
             then
               cd ~/project/backend
               npm install
+              npm run build
               npm run migrations: revert
             fi
 
@@ -110,7 +120,6 @@ jobs:
             npm install
             # npm install oauth-sign@^0.9.0
             npm audit fix --audit-level=critical --force
-            # If the "npm audit fix" command above could not fix all critical vulnerabilities, try “npm audit fix --force” again
             npm audit --audit-level=critical
 
   scan-backend:
@@ -164,7 +173,8 @@ jobs:
             \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --filters "Name=tag:project,Values=udapeople" \
-            --output text >> .circleci/ansible/inventory.txt
+            --output text >> ~/project/.circleci/ansible/inventory.txt
+            cat ~/project/.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -174,7 +184,7 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: python:3.7-alpine3.16
+      - image: python:3.10-alpine3.16
     steps:
       - checkout
       - add_ssh_keys:
@@ -185,8 +195,7 @@ jobs:
           name: Install dependencies
           command: |
             # install the dependencies needed for your playbook
-            apk add --no-cache aws-cli
-            apk add --update ansible
+            apk add --update --no-cache tar gzip ansible aws-cli
       - run:
           name: Configure server
           command: |
@@ -213,17 +222,21 @@ jobs:
 
   run-migrations:
     docker:
-      - image: circleci/node:13.8.0
+      - image: python:3.10-alpine3.16
     steps:
       - checkout
       - attach_workspace:
           at: ~/
       - run:
+          name: Install dependencies
+          command: |
+            apk add --update --no-cache tar gzip nodejs npm aws-cli curl
+      - run:
           name: Run migrations
           command: |
             cd backend
             npm install
-            npm audit fix
+            npm run build
             # Run and save the migration output
             npm run migrations --force > migrations_dump.txt
             cat migrations_dump.txt
@@ -238,11 +251,12 @@ jobs:
             fi
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert-migrations
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   deploy-frontend:
     docker:
-      - image: python:3.7-alpine3.16
+      - image: python:3.10-alpine3.16
     steps:
       - checkout
       - attach_workspace:
@@ -252,7 +266,7 @@ jobs:
           command: |
             apk add --update npm
             apk add --update nodejs
-            apk add --no-cache aws-cli
+            apk add --no-cache aws-cli curl
             apk add --update ansible
       - run:
           name: Get backend url
@@ -263,7 +277,7 @@ jobs:
                                 --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            echo "API_URL=http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
       - run:
           name: Deploy frontend objects
@@ -275,11 +289,12 @@ jobs:
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert-migrations
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
                     
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.16
+      - image: python:3.10-alpine3.16
     steps:
       - checkout
       - add_ssh_keys:
@@ -289,16 +304,12 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update npm
-            apk add --update nodejs
-            apk add --update gzip
-            apk add --update tar
-            apk add --update ansible
+            apk add --update --no-cache tar gzip nodejs npm tree aws-cli ansible
       - run:
           name: Deploy backend
           command: |
             cd backend
-            npm i
+            npm install
             npm run build
             cd ..
             # Zip the directory
@@ -313,20 +324,18 @@ jobs:
             - project/artifact.tar.gz
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert-migrations
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   smoke-test:
     docker:
-      - image: python:3.7-alpine3.16 
+      - image: python:3.10-alpine3.16 
     steps:
       - checkout
       - run:
           name: Install dependencies
           command: |
-            apk add --update curl
-            apk add --update npm
-            apk add --update nodejs
-            apk add --no-cache aws-cli
+            apk add --update --no-cache curl aws-cli tar gzip nodejs npm
       - run:
           name: Get backend url
           command: |
@@ -349,7 +358,7 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
+            export URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
@@ -360,17 +369,18 @@ jobs:
             fi
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert-migrations
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   cloudfront-update:
     docker:
-      - image: python:3.7-alpine3.16
+      - image: amazon/aws-cli
     steps:
       - checkout
       - run:
           name: Install needed dependencies
           command: |
-            # your code here
+            yum install tar gzip npm nodejs -y
       - run:
           name: Update cloudfront distribution
           command: |
@@ -381,11 +391,12 @@ jobs:
                     --tags project=udapeople
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert-migrations
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   cleanup:
     docker:
-      - image: python:3.7-alpine3.16
+      - image: amazon/aws-cli
     steps:
       - checkout
       - run:
