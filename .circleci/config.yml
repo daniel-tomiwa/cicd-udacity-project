@@ -368,7 +368,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install dependencies
+          name: Install needed dependencies
           command: |
             # your code here
       - run:
