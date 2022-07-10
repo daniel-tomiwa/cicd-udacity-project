@@ -182,7 +182,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Install needed dependencies
+          name: Install dependencies
           command: |
             # install the dependencies needed for your playbook
             apk add --no-cache aws-cli
