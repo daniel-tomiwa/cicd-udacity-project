@@ -3,6 +3,13 @@
   become: true
   apt:
     upgrade: "yes"
+    update_cache: yes
+    cache_valid_time: 86400
+
+- name: remove unneeded deps
+  become: yes
+  apt:
+    autoremove: yes
 
 - name: "install dependencies."
   become: true
