@@ -1,3 +1,3 @@
 Public Url to GitHub: https://github.com/daniel-tomiwa/cicd-udacity-project.git
 
-Public Url to S3: http://udapeople-381f4ea.s3-website-us-east-1.amazonaws.com
+Public Url to S3: http://udapeople-1fa799b.s3-website-us-east-1.amazonaws.com
