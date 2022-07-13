@@ -26,13 +26,13 @@
     state: latest
     production: yes
 
-- name: "Extract backend files"
+- name: Extract backend files
   become: yes
   unarchive:
-    src: ~/project/artifact.tar.gz
+    src: files/artifact.tar.gz
     dest: .
 
-- name: "Start server"
+- name: Start server
   become: yes
   shell: |
     pm2 stop all
