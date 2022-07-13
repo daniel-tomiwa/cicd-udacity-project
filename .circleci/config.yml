@@ -226,15 +226,11 @@ jobs:
 
   run-migrations:
     docker:
-      - image: python:3.10-alpine3.16
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - attach_workspace:
           at: ~/
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update --no-cache tar gzip nodejs npm aws-cli curl
       - restore_cache:
           keys: [backend-build]
       - run:
@@ -242,9 +238,8 @@ jobs:
           command: |
             cd backend
             npm install
-            npm run build
             # Run and save the migration output
-            npm run migrations --force > migrations_dump.txt
+            npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
       - run:
           name: Send migration results to kvdb
@@ -255,6 +250,10 @@ jobs:
                 # curl https://kvdb.io/J5SgCMKQrVJVrE1TX8zr5J/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
                 echo "successful"
             fi
+      - persist_to_workspace:
+            root: ~/project
+            paths:
+              - backend
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
@@ -450,8 +449,8 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations]
-      - smoke-test:
-          requires: [deploy-backend, deploy-frontend]
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
       #     requires: [smoke-test]
       # - cleanup:
