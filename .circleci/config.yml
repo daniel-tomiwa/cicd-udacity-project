@@ -214,7 +214,7 @@ jobs:
       - persist_to_workspace:
           root: ~/
           paths:
-            - project/backend/.env
+            - project/backend
       - run:
           name: Setup Prometheus Node Exporter
           command: |
@@ -235,6 +235,8 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update --no-cache tar gzip nodejs npm aws-cli curl
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Run migrations
           command: |
@@ -322,10 +324,6 @@ jobs:
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/artifact.tar.gz
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
