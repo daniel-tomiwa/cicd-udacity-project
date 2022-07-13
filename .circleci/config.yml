@@ -350,8 +350,8 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            # if curl -s http://google.com
-            if curl "${API_URL}/api/status" | grep "ok"
+            if curl -s http://google.com
+            # if curl "${API_URL}/api/status" | grep "ok"
             then
                 return 0
             else
@@ -449,9 +449,9 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
+      - cloudfront-update:
+          requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
